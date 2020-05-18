@@ -6,8 +6,8 @@ from fastapi import FastAPI, HTTPException
 from starlette.responses import Response
 
 from models import Secret
-from settings import DATABASE, PORT, LOG_LEVEL
 from crypto import Crypto
+from settings import DATABASE, PORT, LOG_LEVEL
 
 
 app = FastAPI()
@@ -19,7 +19,43 @@ collection = database[DATABASE['COLLECTION']]
 
 @app.post('/generate', status_code=201)
 async def generate(secret: Secret) -> Response:
+    """The method receives a JSON with 'secret_text' and 'phrase' fields as input and returns the 'secret_key'
 
+    JSON fields:
+        secret_text: str
+        phrase: str
+
+    Request body example:
+        {
+            "secret_text": "string",
+            "phrase": "string"
+        }
+
+    The function generates a secret key based on the input
+    and returns it in JSON with the 'secret_key' field
+
+    Successful response example:
+        {
+            "secret_key": "string"
+        }
+
+    All fields must be non null
+    Strings can not be empty
+
+    Validation error:
+        {
+            "detail": [
+                {
+                    "loc": [
+                        "string"
+                    ],
+                    "msg": "string",
+                    "type": "string"
+                }
+            ]
+        }
+
+    """
     crypto.encrypt_secret(secret)
     crypto.generate_secret_key(secret)
 
@@ -33,8 +69,28 @@ async def generate(secret: Secret) -> Response:
 
 
 @app.get('/secrets/{secret_key}', status_code=200)
-async def get_secret(secret_key: str, secret_phrase: str = "") -> Response:
+async def get_secret(secret_key: str, code_phrase: str = "") -> Response:
+    """The method receives a code phrase as input and returns the secret
 
+    :param code_phrase:
+    :type code_phrase: str
+    :return: decrypted secret or an error
+    :rtype: JSON
+
+    Not found error:
+        {
+            "detail": "The secret for this URL did not exist or was read"
+        }
+
+    If an invalid code phrase is specified
+    HTTPException with status_code=401 is thrown
+
+    Unauthorized error:
+        {
+            "detail" : "The code phrase is wrong"
+        }
+
+    """
     secret_dict: dict = collection.find_one({'secret_key': secret_key})
 
     if not secret_dict:
@@ -43,8 +99,8 @@ async def get_secret(secret_key: str, secret_phrase: str = "") -> Response:
     secret: Secret = Secret(**secret_dict)
     crypto.decrypt_secret(secret)
 
-    if not secret.phrase == secret_phrase:
-        raise HTTPException(status_code=401, detail="The secret phrase is wrong")
+    if not secret.phrase == code_phrase:
+        raise HTTPException(status_code=401, detail="The code phrase is wrong")
 
     collection.delete_one({'secret_key': secret_key})
 

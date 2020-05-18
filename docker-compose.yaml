@@ -5,7 +5,7 @@ services:
     image: mongo
     container_name: mongo
     environment:
-      - MONGO_INITDB_DATABASE=test
+      - MONGO_INITDB_DATABASE=mi-test
     restart: always
     networks:
       - backend
@@ -18,7 +18,7 @@ services:
     container_name: backend
     environment:
       - PORT=80
-      - DB_NAME=test
+      - DB_NAME=mi-test
       - DB_PORT=27017
       - DB_HOST=mongo
     restart: always
