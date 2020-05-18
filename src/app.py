@@ -17,10 +17,8 @@ database = client[DATABASE['NAME']]
 collection = database[DATABASE['COLLECTION']]
 
 
-@app.post('/generate')
+@app.post('/generate', status_code=201)
 async def generate(secret: Secret) -> Response:
-
-    secret.validate_fields()
 
     crypto.encrypt_secret(secret)
     crypto.generate_secret_key(secret)
@@ -31,11 +29,11 @@ async def generate(secret: Secret) -> Response:
         'secret_key': secret.secret_key
     })
 
-    return Response(content=res, media_type='application/json')
+    return Response(status_code=201, content=res, media_type='application/json')
 
 
-@app.get('/secrets/{secret_key}')
-async def get_secret(secret_key: str, secret_phrase: str) -> Response:
+@app.get('/secrets/{secret_key}', status_code=200)
+async def get_secret(secret_key: str, secret_phrase: str = "") -> Response:
 
     secret_dict: dict = collection.find_one({'secret_key': secret_key})
 

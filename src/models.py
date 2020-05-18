@@ -1,17 +1,20 @@
+from typing import Optional
 from pydantic import BaseModel, validator
-
-from fastapi import HTTPException
 
 
 class Secret(BaseModel):
     secret_text: str
     phrase: str
-    secret_key: str = None
+    secret_key: Optional[str]
 
-    def validate_fields(self):
+    @validator('secret_text')
+    def secret_text_must_exist(cls, v):
+        if not v:
+            raise ValueError("Field 'secret_text' can not be empty")
+        return v
 
-        if not self.secret_text:
-            raise HTTPException(status_code=400, detail="Field 'secret_text' can not be empty")
-
-        if not self.phrase:
-            raise HTTPException(status_code=400, detail="Field 'phrase' can not be empty")
+    @validator('phrase')
+    def phrase_must_exist(cls, v):
+        if not v:
+            raise ValueError("Field 'phrase' can not be empty")
+        return v
