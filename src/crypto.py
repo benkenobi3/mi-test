@@ -1,4 +1,4 @@
-from xxhash import xxh64
+import secrets
 from cryptography.fernet import Fernet
 
 from models import Secret
@@ -24,4 +24,4 @@ class Crypto:
 
     def generate_secret_key(self, secret: Secret):
         """Changes the secret_key field by filling it in with generated code based on other object fields"""
-        secret.secret_key = xxh64(secret.secret_text + secret.phrase).hexdigest()[:10]
+        secret.secret_key = secrets.token_urlsafe(16)

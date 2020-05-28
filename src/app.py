@@ -100,7 +100,7 @@ async def get_secret(secret_key: str, code_phrase: str = "") -> Response:
     crypto.decrypt_secret(secret)
 
     if not secret.phrase == code_phrase:
-        raise HTTPException(status_code=401, detail="The code phrase is wrong")
+        raise HTTPException(status_code=403, detail="The code phrase is wrong")
 
     collection.delete_one({'secret_key': secret_key})
 
